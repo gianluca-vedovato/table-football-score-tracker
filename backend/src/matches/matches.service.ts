@@ -3,7 +3,7 @@ import { SupabaseService } from '../shared/supabase/supabase.service';
 import { CreateMatchDto } from './create-match.dto';
 
 @Injectable()
-export class MatchService {
+export class MatchesService {
   private readonly table = 'matches';
 
   constructor(private readonly supabaseService: SupabaseService) {}

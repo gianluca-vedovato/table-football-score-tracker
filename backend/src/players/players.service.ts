@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { SupabaseService } from '../shared/supabase/supabase.service';
 
 @Injectable()
-export class PlayerService {
+export class PlayersService {
   private readonly table = 'players';
 
   constructor(private readonly supabaseService: SupabaseService) {}

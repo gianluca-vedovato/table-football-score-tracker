@@ -14,14 +14,14 @@ import {
   ApiBody,
   ApiResponse,
 } from '@nestjs/swagger';
-import { MatchService } from './match.service';
+import { MatchesService } from './matches.service';
 import { CreateMatchDto } from './create-match.dto';
 import { MatchEntity } from './match.entity';
 
-@ApiTags('match')
-@Controller('match')
-export class MatchController {
-  constructor(private readonly matchService: MatchService) {}
+@ApiTags('matches')
+@Controller('matches')
+export class MatchesController {
+  constructor(private readonly matchesService: MatchesService) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all matches' })
@@ -33,7 +33,7 @@ export class MatchController {
   @ApiResponse({ status: 500, description: 'Internal server error' })
   findAll() {
     try {
-      return this.matchService.findAll();
+      return this.matchesService.findAll();
     } catch {
       throw new InternalServerErrorException('Failed to get matches');
     }
@@ -49,7 +49,7 @@ export class MatchController {
   })
   @ApiResponse({ status: 404, description: 'Match not found' })
   findOne(@Param('id') id: string) {
-    return this.matchService.findOne(id);
+    return this.matchesService.findOne(id);
   }
 
   @Post()
@@ -62,7 +62,7 @@ export class MatchController {
   })
   @ApiResponse({ status: 400, description: 'Invalid input' })
   create(@Body() match: CreateMatchDto) {
-    return this.matchService.create(match);
+    return this.matchesService.create(match);
   }
 
   @Put(':id')
@@ -88,6 +88,6 @@ export class MatchController {
     @Body()
     updates: Partial<{ name: string; wins: number; losses: number }>,
   ) {
-    return this.matchService.update(id, updates);
+    return this.matchesService.update(id, updates);
   }
 }

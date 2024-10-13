@@ -14,14 +14,14 @@ import {
   ApiBody,
   ApiResponse,
 } from '@nestjs/swagger';
-import { TeamService } from './team.service';
+import { TeamsService } from './teams.service';
 import { CreateTeamDto } from './create-team.dto';
 import { TeamEntity } from './team.entity';
 
-@ApiTags('team')
-@Controller('team')
-export class TeamController {
-  constructor(private readonly teamService: TeamService) {}
+@ApiTags('teams')
+@Controller('teams')
+export class TeamsController {
+  constructor(private readonly teamsService: TeamsService) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all teams' })
@@ -33,7 +33,7 @@ export class TeamController {
   @ApiResponse({ status: 500, description: 'Internal server error' })
   findAll() {
     try {
-      return this.teamService.findAll();
+      return this.teamsService.findAll();
     } catch {
       throw new InternalServerErrorException('Failed to get teams');
     }
@@ -49,7 +49,7 @@ export class TeamController {
   })
   @ApiResponse({ status: 404, description: 'Team not found' })
   findOne(@Param('id') id: string) {
-    return this.teamService.findOne(id);
+    return this.teamsService.findOne(id);
   }
 
   @Post()
@@ -62,7 +62,7 @@ export class TeamController {
   })
   @ApiResponse({ status: 400, description: 'Invalid input' })
   create(@Body() team: CreateTeamDto) {
-    return this.teamService.create(team);
+    return this.teamsService.create(team);
   }
 
   @Put(':id')
@@ -88,6 +88,6 @@ export class TeamController {
     @Body()
     updates: Partial<{ name: string; wins: number; losses: number }>,
   ) {
-    return this.teamService.update(id, updates);
+    return this.teamsService.update(id, updates);
   }
 }

@@ -14,13 +14,13 @@ import {
   ApiBody,
   ApiResponse,
 } from '@nestjs/swagger';
-import { PlayerService } from './player.service';
+import { PlayersService } from './players.service';
 import { PlayerEntity } from './player.entity';
 
-@ApiTags('player')
-@Controller('player')
-export class PlayerController {
-  constructor(private readonly playerService: PlayerService) {}
+@ApiTags('players')
+@Controller('players')
+export class PlayersController {
+  constructor(private readonly playersService: PlayersService) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all players' })
@@ -32,7 +32,7 @@ export class PlayerController {
   @ApiResponse({ status: 500, description: 'Internal server error' })
   findAll() {
     try {
-      return this.playerService.findAll();
+      return this.playersService.findAll();
     } catch {
       throw new InternalServerErrorException('Failed to get players');
     }
@@ -42,14 +42,14 @@ export class PlayerController {
   @ApiOperation({ summary: 'Get a player by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Player ID' })
   findOne(@Param('id') id: string) {
-    return this.playerService.findOne(id);
+    return this.playersService.findOne(id);
   }
 
   @Post()
   @ApiOperation({ summary: 'Create a new player' })
   @ApiBody({ schema: { properties: { name: { type: 'string' } } } })
   create(@Body() player: { name: string }) {
-    return this.playerService.create(player);
+    return this.playersService.create(player);
   }
 
   @Put(':id')
@@ -69,6 +69,6 @@ export class PlayerController {
     @Body()
     updates: Partial<{ name: string; wins: number; losses: number }>,
   ) {
-    return this.playerService.update(id, updates);
+    return this.playersService.update(id, updates);
   }
 }
