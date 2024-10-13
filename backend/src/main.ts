@@ -6,8 +6,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-    .setTitle('Player API')
-    .setDescription('The player API description')
+    .setTitle('Table football score tracker API')
+    .setDescription(
+      'These APIs are used to track scores for table football matches. We can add new players, teams, and matches, and we can also get a list of all players, teams, and matches with stats.',
+    )
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
@@ -15,7 +17,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: 'http://localhost:5173',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    methods: 'GET,POST',
     preflightContinue: false,
     optionsSuccessStatus: 204,
   });
