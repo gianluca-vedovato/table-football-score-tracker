@@ -1,11 +1,11 @@
 import {
   Controller,
   Get,
-  Post,
-  Put,
   Param,
+  Post,
   Body,
   InternalServerErrorException,
+  Inject,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,11 +16,16 @@ import {
 } from '@nestjs/swagger';
 import { PlayersService } from './players.service';
 import { PlayerEntity } from './player.entity';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @ApiTags('players')
 @Controller('players')
 export class PlayersController {
-  constructor(private readonly playersService: PlayersService) {}
+  constructor(
+    private readonly playersService: PlayersService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all players' })
@@ -30,9 +35,16 @@ export class PlayersController {
     type: [PlayerEntity],
   })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  findAll() {
+  async findAll() {
     try {
-      return this.playersService.findAll();
+      const cachedPlayers = await this.cacheManager.get('players');
+      if (cachedPlayers) {
+        return cachedPlayers;
+      }
+
+      const players = await this.playersService.findAll();
+      await this.cacheManager.set('players', players);
+      return players;
     } catch {
       throw new InternalServerErrorException('Failed to get players');
     }
@@ -41,34 +53,31 @@ export class PlayersController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a player by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Player ID' })
-  findOne(@Param('id') id: string) {
-    return this.playersService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    try {
+      const cachedPlayer = await this.cacheManager.get(`player-${id}`);
+      if (cachedPlayer) {
+        return cachedPlayer;
+      }
+
+      const player = await this.playersService.findOne(id);
+      await this.cacheManager.set(`player-${id}`, player);
+      return player;
+    } catch {
+      throw new InternalServerErrorException('Failed to get player');
+    }
   }
 
   @Post()
   @ApiOperation({ summary: 'Create a new player' })
-  @ApiBody({ schema: { properties: { name: { type: 'string' } } } })
-  create(@Body() player: { name: string }) {
-    return this.playersService.create(player);
-  }
-
-  @Put(':id')
-  @ApiOperation({ summary: 'Update a player' })
-  @ApiParam({ name: 'id', type: String, description: 'Player ID' })
-  @ApiBody({
-    schema: {
-      properties: {
-        name: { type: 'string', nullable: true },
-        wins: { type: 'number', nullable: true },
-        losses: { type: 'number', nullable: true },
-      },
-    },
-  })
-  update(
-    @Param('id') id: string,
-    @Body()
-    updates: Partial<{ name: string; wins: number; losses: number }>,
-  ) {
-    return this.playersService.update(id, updates);
+  @ApiBody({ type: PlayerEntity })
+  async create(@Body() player: PlayerEntity) {
+    try {
+      const newPlayer = await this.playersService.create(player);
+      await this.cacheManager.del('players');
+      return newPlayer;
+    } catch {
+      throw new InternalServerErrorException('Failed to create player');
+    }
   }
 }

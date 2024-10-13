@@ -1,11 +1,11 @@
 import {
   Controller,
   Get,
-  Post,
   Param,
+  Post,
   Body,
-  Put,
   InternalServerErrorException,
+  Inject,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,13 +15,18 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { TeamsService } from './teams.service';
-import { CreateTeamDto } from './create-team.dto';
 import { TeamEntity } from './team.entity';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { CreateTeamDto } from './create-team.dto';
 
 @ApiTags('teams')
 @Controller('teams')
 export class TeamsController {
-  constructor(private readonly teamsService: TeamsService) {}
+  constructor(
+    private readonly teamsService: TeamsService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all teams' })
@@ -31,9 +36,16 @@ export class TeamsController {
     type: [TeamEntity],
   })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  findAll() {
+  async findAll() {
     try {
-      return this.teamsService.findAll();
+      const cachedTeams = await this.cacheManager.get('teams');
+      if (cachedTeams) {
+        return cachedTeams;
+      }
+
+      const teams = await this.teamsService.findAll();
+      await this.cacheManager.set('teams', teams);
+      return teams;
     } catch {
       throw new InternalServerErrorException('Failed to get teams');
     }
@@ -42,52 +54,31 @@ export class TeamsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a team by ID' })
   @ApiParam({ name: 'id', type: String, description: 'Team ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Team details',
-    type: TeamEntity,
-  })
-  @ApiResponse({ status: 404, description: 'Team not found' })
-  findOne(@Param('id') id: string) {
-    return this.teamsService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    try {
+      const cachedTeam = await this.cacheManager.get(`team-${id}`);
+      if (cachedTeam) {
+        return cachedTeam;
+      }
+
+      const team = await this.teamsService.findOne(id);
+      await this.cacheManager.set(`team-${id}`, team);
+      return team;
+    } catch {
+      throw new InternalServerErrorException('Failed to get team');
+    }
   }
 
   @Post()
   @ApiOperation({ summary: 'Create a new team' })
   @ApiBody({ type: CreateTeamDto })
-  @ApiResponse({
-    status: 201,
-    description: 'The team has been successfully created.',
-    type: TeamEntity,
-  })
-  @ApiResponse({ status: 400, description: 'Invalid input' })
-  create(@Body() team: CreateTeamDto) {
-    return this.teamsService.create(team);
-  }
-
-  @Put(':id')
-  @ApiOperation({ summary: 'Update a team' })
-  @ApiParam({ name: 'id', type: String, description: 'Team ID' })
-  @ApiBody({
-    schema: {
-      properties: {
-        name: { type: 'string', nullable: true },
-        wins: { type: 'number', nullable: true },
-        losses: { type: 'number', nullable: true },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'The team has been successfully updated.',
-    type: TeamEntity,
-  })
-  @ApiResponse({ status: 404, description: 'Team not found' })
-  update(
-    @Param('id') id: string,
-    @Body()
-    updates: Partial<{ name: string; wins: number; losses: number }>,
-  ) {
-    return this.teamsService.update(id, updates);
+  async create(@Body() team: CreateTeamDto) {
+    try {
+      const newTeam = await this.teamsService.create(team);
+      await this.cacheManager.del('teams');
+      return newTeam;
+    } catch {
+      throw new InternalServerErrorException('Failed to create team');
+    }
   }
 }

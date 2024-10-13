@@ -1,12 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { SupabaseService } from '../shared/supabase/supabase.service';
 import { CreateMatchDto } from './create-match.dto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class MatchesService {
   private readonly table = 'matches';
 
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   findAll() {
     return this.supabaseService.findAll(this.table);
@@ -36,15 +41,18 @@ export class MatchesService {
 
     // Update the teams' wins, losses and goals
     await Promise.all(
-      match.teams.map(async (team, index) =>
-        this.supabaseService.callFunction('update_team_stats', {
+      match.teams.map(async (team, index) => {
+        await this.supabaseService.callFunction('update_team_stats', {
           rowid: team,
           new_wins: match.score[index] > match.score[1 - index] ? 1 : 0,
           new_losses: match.score[index] < match.score[1 - index] ? 1 : 0,
           new_goals_for: match.score[index],
           new_goals_against: match.score[1 - index],
-        }),
-      ),
+        });
+
+        // Invalidate player cache
+        await this.cacheManager.del(`team-${team}`);
+      }),
     );
 
     // Update the players' wins, losses and goals
@@ -55,15 +63,18 @@ export class MatchesService {
         });
 
         return Promise.all(
-          players.map((player) =>
-            this.supabaseService.callFunction('update_player_stats', {
+          players.map(async (player) => {
+            await this.supabaseService.callFunction('update_player_stats', {
               rowid: player.player_id,
               new_wins: match.score[index] > match.score[1 - index] ? 1 : 0,
               new_losses: match.score[index] < match.score[1 - index] ? 1 : 0,
               new_goals_for: match.score[index],
               new_goals_against: match.score[1 - index],
-            }),
-          ),
+            });
+
+            // Invalidate player cache
+            await this.cacheManager.del(`player-${player.player_id}`);
+          }),
         );
       }),
     );
