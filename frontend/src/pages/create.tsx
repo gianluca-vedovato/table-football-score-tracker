@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { ArrowLeftCircle } from "lucide-react";
+import { ArrowLeftCircle, Loader2 } from "lucide-react";
 import { Team } from "@/components/modules/match-creation/team/index";
 import { useMemo, useState } from "react";
 import { MatchEntity, TeamEntity } from "@/types";
@@ -11,6 +11,8 @@ import { Separator } from "@/components/ui/separator";
 function Create() {
   const [teams, setTeams] = useState<TeamEntity[]>([])
   const [score, setScore] = useState<number[]>([0, 0])
+  const [isLoading, setIsLoading] = useState(false)
+  const [matchCreated, setMatchCreated] = useState(false)
 
   const updateTeams = (team: TeamEntity, index: number) => {
     setTeams((prevTeams) => {
@@ -29,10 +31,13 @@ function Create() {
   }
 
   const handleCreateMatch = async () => {
-    const response = await apiFetch<MatchEntity>("/matches", "POST", {
+    setIsLoading(true)
+    await apiFetch<MatchEntity>("/matches", "POST", {
       teams: teams.map((team) => team.id),
       score,
     })
+    setIsLoading(false)
+    setMatchCreated(true)
   }
 
   const status = useMemo(() => {
@@ -75,7 +80,24 @@ function Create() {
         <Separator className="my-4" />
       </div>
       <div className="mt-10 flex justify-center">
-        <Button disabled={!teams[0] || !teams[1] || (score[0] === score[1 ])} onClick={handleCreateMatch}>Create match</Button>
+        {
+          !matchCreated 
+            ? (<Button disabled={!teams[0] || !teams[1] || (score[0] === score[1] || isLoading)} onClick={handleCreateMatch}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create match
+              </Button>)
+            : (
+              <div className="text-center">
+                <p className="text-xl">Match created! 🎉</p>
+                <p className="text-gray-400 mt-0.5">You can now go back to the dashboard</p>
+                <div className="mt-2">
+                  <Link to="/" className={buttonVariants({ variant: "default" })}>
+                    Go to dashboard
+                  </Link>
+                </div>
+              </div>
+            )
+        }
       </div>
     </div>
   )
