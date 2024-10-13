@@ -26,7 +26,7 @@ export class MatchesService {
     const newMatch = await this.supabaseService.create(this.table, {
       score: match.score,
     });
-    const newMatchId = newMatch[0].id;
+    const newMatchId = newMatch.id;
 
     // Update the join table with the teams in the match
     await Promise.all(

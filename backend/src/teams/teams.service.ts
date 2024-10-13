@@ -20,7 +20,7 @@ export class TeamsService {
     const newTeam = await this.supabaseService.create(this.table, {
       name: team.name,
     });
-    const newTeamId = newTeam[0].id;
+    const newTeamId = newTeam.id;
     await Promise.all(
       team.players.map((player) =>
         this.supabaseService.create('team_players', {

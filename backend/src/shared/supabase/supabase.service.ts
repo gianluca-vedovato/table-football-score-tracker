@@ -33,13 +33,14 @@ export class SupabaseService {
     if (error) throw new Error(error.message);
     return data;
   }
+
   async create(table: string, record: any) {
     const { data, error } = await this.supabase
       .from(table)
       .insert([record])
       .select();
     if (error) throw new Error(error.message);
-    return data;
+    return data[0];
   }
 
   async update(table: string, id: string, updates: { [key: string]: any }) {
