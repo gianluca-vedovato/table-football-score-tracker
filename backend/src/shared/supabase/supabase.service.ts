@@ -9,8 +9,17 @@ export class SupabaseService {
     this.supabase = createSupabaseClient();
   }
 
-  async findAll(table: string) {
-    const { data, error } = await this.supabase.from(table).select('*');
+  async findAll(table: string, filters?: { [key: string]: any }) {
+    let query = this.supabase.from(table).select('*');
+
+    if (filters) {
+      for (const [key, value] of Object.entries(filters)) {
+        query = query.eq(key, value);
+      }
+    }
+
+    const { data, error } = await query;
+
     if (error) throw new Error(error.message);
     return data;
   }
@@ -24,7 +33,6 @@ export class SupabaseService {
     if (error) throw new Error(error.message);
     return data;
   }
-
   async create(table: string, record: any) {
     const { data, error } = await this.supabase
       .from(table)

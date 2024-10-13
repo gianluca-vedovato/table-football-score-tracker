@@ -23,37 +23,49 @@ export class MatchService {
     });
     const newMatchId = newMatch[0].id;
 
-    // Get the type of the match (players or teams) and set some variables accordingly
-    const matchType = match.type;
-    const contendents = match[matchType] as [string, string];
-    const matchJoinTable =
-      matchType === 'players' ? 'match_players' : 'match_teams';
-    const contendentKey = matchType === 'players' ? 'player_id' : 'team_id';
-    const contendentUpdateFunction =
-      matchType === 'players' ? 'update_player_stats' : 'update_team_stats';
-
-    // Update the join table with the players/teams in the match
+    // Update the join table with the teams in the match
     await Promise.all(
-      contendents.map((player, index) =>
-        this.supabaseService.create(matchJoinTable, {
+      match.teams.map((team, index) =>
+        this.supabaseService.create('match_teams', {
           match_id: newMatchId,
-          [contendentKey]: player,
+          team_id: team,
           score_index: index,
         }),
       ),
     );
 
-    // Update the players'/teams' wins, losses and goals
+    // Update the teams' wins, losses and goals
     await Promise.all(
-      contendents.map(async (contendent, index) =>
-        this.supabaseService.callFunction(contendentUpdateFunction, {
-          rowid: contendent,
+      match.teams.map(async (team, index) =>
+        this.supabaseService.callFunction('update_team_stats', {
+          rowid: team,
           new_wins: match.score[index] > match.score[1 - index] ? 1 : 0,
           new_losses: match.score[index] < match.score[1 - index] ? 1 : 0,
           new_goals_for: match.score[index],
           new_goals_against: match.score[1 - index],
         }),
       ),
+    );
+
+    // Update the players' wins, losses and goals
+    await Promise.all(
+      match.teams.map(async (team, index) => {
+        const players = await this.supabaseService.findAll('team_players', {
+          team_id: team,
+        });
+
+        return Promise.all(
+          players.map((player) =>
+            this.supabaseService.callFunction('update_player_stats', {
+              rowid: player.player_id,
+              new_wins: match.score[index] > match.score[1 - index] ? 1 : 0,
+              new_losses: match.score[index] < match.score[1 - index] ? 1 : 0,
+              new_goals_for: match.score[index],
+              new_goals_against: match.score[1 - index],
+            }),
+          ),
+        );
+      }),
     );
 
     return newMatch;
