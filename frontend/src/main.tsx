@@ -6,6 +6,7 @@ import {
 } from "react-router-dom"
 import Dashboard from './pages/dashboard.tsx'
 import Create from './pages/create.tsx'
+import { Toaster } from "@/components/ui/toaster"
 import './index.css'
 
 const router = createBrowserRouter([
@@ -21,6 +22,9 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <>
+      <RouterProvider router={router} />
+      <Toaster />
+    </>
   </StrictMode>,
 )

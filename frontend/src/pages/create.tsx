@@ -1,11 +1,50 @@
 import { Link } from "react-router-dom";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { ArrowLeftCircle } from "lucide-react";
-import { Team, type TeamType } from "@/components/modules/match-creation/team";
-import { useState } from "react";
+import { Team } from "@/components/modules/match-creation/team/index";
+import { useMemo, useState } from "react";
+import { MatchEntity, TeamEntity } from "@/types";
+import { Score } from "@/components/modules/match-creation/score";
+import { apiFetch } from "@/lib/api";
+import { Separator } from "@/components/ui/separator";
 
 function Create() {
-  const [teams, setTeams] = useState<TeamType[]>([])
+  const [teams, setTeams] = useState<TeamEntity[]>([])
+  const [score, setScore] = useState<number[]>([0, 0])
+
+  const updateTeams = (team: TeamEntity, index: number) => {
+    setTeams((prevTeams) => {
+      const newTeams = [...prevTeams]
+      newTeams[index] = team
+      return newTeams
+    })
+  }
+
+  const updateScore = (value: number, index: number) => {
+    setScore((prevScore) => {
+      const newScore = [...prevScore]
+      newScore[index] = value
+      return newScore
+    })
+  }
+
+  const handleCreateMatch = async () => {
+    const response = await apiFetch<MatchEntity>("/matches", "POST", {
+      teams: teams.map((team) => team.id),
+      score,
+    })
+  }
+
+  const status = useMemo(() => {
+    if (!teams[0] || !teams[1]) {
+      return "Select two teams to start the match! 🏟️"
+    }
+    if (score[0] === score[1]) {
+      return "It's a tie! ⚖️"
+    }
+    const winner = score[0] > score[1] ? teams[0] : teams[1]
+    return `${winner.name} is winning! 🎉`
+  }, [score, teams])
 
   return (
     <div className="container mx-auto mt-10">
@@ -17,10 +56,26 @@ function Create() {
       <div className="mt-10">
         <h1 className="text-4xl text-center">Create a new match</h1>
         <div className="flex mt-10 items-stretch">
-          <Team team={teams[0]} index={0} />
+          <div className="flex-1">
+            <Team team={teams[0]} index={0} setTeam={updateTeams} />
+            <Score value={score[0]} onChange={(score) => updateScore(score, 0)}/>
+          </div>
           <div className="w-[1px] bg-slate-300"></div>
-          <Team team={teams[1]} index={1} />
+          <div className="flex-1">
+            <Team team={teams[1]} index={1} setTeam={updateTeams} />
+            <Score value={score[1]} onChange={(score) => updateScore(score, 1)}/>
+          </div>
         </div>
+      </div>
+      <div className="mt-10">
+        <Separator className="my-4" />
+        <p className="text-xl text-center">
+          {status}
+        </p>
+        <Separator className="my-4" />
+      </div>
+      <div className="mt-10 flex justify-center">
+        <Button disabled={!teams[0] || !teams[1] || (score[0] === score[1 ])} onClick={handleCreateMatch}>Create match</Button>
       </div>
     </div>
   )
