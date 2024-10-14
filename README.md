@@ -76,7 +76,7 @@ npm install
 - Tailwind CSS: Utility-first CSS framework for styling the application.
 - Shadcn: Component library
 
-## Run the project
+## How to run this project
 
 ### Backend
 To start the backend, navigate to the backend folder and run:
@@ -84,7 +84,7 @@ To start the backend, navigate to the backend folder and run:
 cd backend
 npm run start:dev
 ```
-The backend will be available at http://localhost:3000. The API documentation (Swagger) can be accessed at http://localhost:3000/api-docs.
+The backend will be available at http://localhost:3000. The API documentation (Swagger) can be accessed at http://localhost:3000/api.
 
 ### Frontend
 To start the frontend (React), navigate to the frontend folder and run:
@@ -92,4 +92,10 @@ To start the frontend (React), navigate to the frontend folder and run:
 cd frontend
 npm start
 ```
-The frontend will be available at http://localhost:3001 (default port).
+The frontend will be available at http://localhost:5173 (default port).
+
+## Routes
+The routes for the frontend application are:
+- http://localhost:5173/ : The homepage in which we can see the table with players/teams stats.
+- http://localhost:5173/create : Here we can create a new match between teams. Teams and players can also be created here.
+- http://localhost:5173/h2h : The head-to-head section in which we have a copmparison between 2 teams. The 2 teams can be passed as query params with the ID. Example: http://localhost:5173/h2h?team1=id_1&team2=id_2
