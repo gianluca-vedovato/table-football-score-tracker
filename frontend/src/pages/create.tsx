@@ -60,15 +60,16 @@ function Create() {
       </div>
       <div className="mt-10">
         <h1 className="text-4xl text-center">Create a new match</h1>
+        <p className="text-center">Select both teams before start the match</p>
         <div className="flex mt-10 items-stretch">
           <div className="flex-1">
             <Team team={teams[0]} index={0} setTeam={updateTeams} />
-            <Score value={score[0]} onChange={(score) => updateScore(score, 0)}/>
+            { (!matchCreated && teams.length === 2) && <Score value={score[0]} onChange={(score) => updateScore(score, 0)}/> }
           </div>
           <div className="w-[1px] bg-slate-300"></div>
           <div className="flex-1">
             <Team team={teams[1]} index={1} setTeam={updateTeams} />
-            <Score value={score[1]} onChange={(score) => updateScore(score, 1)}/>
+            { (!matchCreated && teams.length === 2) && <Score value={score[1]} onChange={(score) => updateScore(score, 1)}/> }
           </div>
         </div>
       </div>
@@ -98,6 +99,13 @@ function Create() {
               </div>
             )
         }
+      </div>
+      <Separator className="my-10" />
+      <div className="flex flex-col items-center gap-4">
+        <p>Want to see the match history between the 2 teams?</p>
+        <Link to={`/h2h?team1=${teams[0].id}&team2=${teams[1].id}`} className={buttonVariants({ variant: "outline" })}>
+          Go to head to head
+        </Link>
       </div>
     </div>
   )
