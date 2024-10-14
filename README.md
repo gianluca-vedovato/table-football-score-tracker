@@ -24,6 +24,7 @@ Before running the project, ensure your environment meets the following requirem
 ---
 
 ## Project Structure
+```
 root
 │
 ├── backend/             # Nest.js application (API)
@@ -35,7 +36,7 @@ root
 │   └── package.json     # Frontend dependencies
 │
 └── README.md            # This file
-
+```
 ---
 
 ## Installation
