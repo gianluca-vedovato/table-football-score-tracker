@@ -17,9 +17,8 @@ This project demonstrates a full-stack application using **React** for the front
 
 Before running the project, ensure your environment meets the following requirements:
 
-- **Node.js**: `>= 16.x`
+- **Node.js**: Suggested version: `>= 20.x`
 - **npm**: `>= 8.x`
-- **Docker** (optional, if running Supabase locally): `>= 20.x`
 
 ---
 
@@ -43,8 +42,8 @@ root
 
 ### 1. Clone the repository
 ```bash
-git clone <your-repo-url>
-cd <your-repo-directory>
+git clone git@github.com:gianluca-vedovato/table-football-score-tracker.git
+cd table-football-score-tracker
 ```
 
 ### 2. Install dependencies for the backend (Nest.js)
@@ -83,7 +82,7 @@ npm install
 To start the backend, navigate to the backend folder and run:
 ```bash
 cd backend
-npm run start:dev
+npm run start
 ```
 The backend will be available at http://localhost:3000. The API documentation (Swagger) can be accessed at http://localhost:3000/api.
 
