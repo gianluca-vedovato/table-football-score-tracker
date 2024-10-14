@@ -21,6 +21,13 @@ export class MatchesService {
     return this.supabaseService.findOne(this.table, id);
   }
 
+  async findMatchesBetweenTeams(teams: string[]) {
+    return this.supabaseService.callFunction('get_matches_between_teams', {
+      team1_id: teams[0],
+      team2_id: teams[1],
+    });
+  }
+
   async create(match: CreateMatchDto) {
     // Create a new match
     const newMatch = await this.supabaseService.create(this.table, {

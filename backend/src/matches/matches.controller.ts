@@ -81,4 +81,33 @@ export class MatchesController {
       throw new InternalServerErrorException('Failed to create match');
     }
   }
+
+  @Get('h2h/:team1/:team2')
+  @ApiOperation({ summary: 'Get matches between two teams' })
+  @ApiParam({ name: 'team1', type: String, description: 'Team ID' })
+  @ApiParam({ name: 'team2', type: String, description: 'Team ID' })
+  async findMatchesBetweenTeams(
+    @Param('team1') team1: string,
+    @Param('team2') team2: string,
+  ) {
+    try {
+      const cachedMatches = await this.cacheManager.get(
+        `matches-${team1}-${team2}`,
+      );
+      if (cachedMatches) {
+        return cachedMatches;
+      }
+
+      const matches = await this.matchesService.findMatchesBetweenTeams([
+        team1,
+        team2,
+      ]);
+      await this.cacheManager.set(`matches-${team1}-${team2}`, matches);
+      return matches || [];
+    } catch {
+      throw new InternalServerErrorException(
+        'Failed to get matches between teams',
+      );
+    }
+  }
 }
